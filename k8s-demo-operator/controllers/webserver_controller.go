@@ -18,24 +18,24 @@ package controllers
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"time"
 
+	appv1 "github.com/sdaulibin/webserver-operator/api/v1"
+	k8sappsv1 "k8s.io/api/apps/v1"
+	k8scorev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	appv1 "github.com/sdaulibin/webserver-operator/api/v1"
-	k8sappsv1 "k8s.io/api/apps/v1"
-	k8scorev1 "k8s.io/api/core/v1"
 )
 
 // WebServerReconciler reconciles a WebServer object
 type WebServerReconciler struct {
 	client.Client
+	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -53,57 +53,61 @@ type WebServerReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.1/pkg/reconcile
 func (r *WebServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := log.FromContext(ctx)
+	log := r.Log.WithValues("Webserver", req.NamespacedName)
 
 	// TODO(user): your logic here
-	webServer := &appv1.WebServer{}
-	err := r.Get(ctx, req.NamespacedName, webServer)
+	instance := &appv1.WebServer{}
+	err := r.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Info("Webserver resource not found. Ignoring since object must be deleted")
 			return ctrl.Result{}, err
 		}
+		// Error reading the object - requeue the request.
 		log.Error(err, "Failed to get Webserver")
-		return ctrl.Result{RequeueAfter: time.Second * 5}, nil
+		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
 	// Check if the webserver deployment already exists, if not, create a new one
-	found := &k8sappsv1.Deployment{}
-	err = r.Get(ctx, req.NamespacedName, found)
+	foundDeployment := &k8sappsv1.Deployment{}
+	err = r.Get(ctx, types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, foundDeployment)
 	if err != nil && errors.IsNotFound(err) {
 		log.Info("Deployment Not Found")
-		deployment := r.CreateDeployment(webServer)
+		//define a new deployment
+		deployment := r.defineDeployment(instance)
 		log.Info("Creating a new Deployment", "Deployment.Namespace", deployment.Namespace, "Deployment.Name", deployment.Name)
 		err = r.Create(ctx, deployment)
 		if err != nil {
 			log.Error(err, "Failed to create new Deployment", "Deployment.Namespace", deployment.Namespace, "Deployment.Name", deployment.Name)
 			return ctrl.Result{RequeueAfter: time.Second * 5}, err
 		}
+		// deployment created successfully - return and requeue
+		return ctrl.Result{Requeue: true}, nil
 	} else if err != nil {
 		log.Error(err, "Failed to get Deployment")
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
 	// Ensure the deployment replicas and image are the same as the spec
-	var replicas int32 = int32(webServer.Spec.Replica)
-	image := webServer.Spec.Image
+	var replicas int32 = int32(instance.Spec.Replicas)
+	image := instance.Spec.Image
 	var needUpd bool
 
-	if *found.Spec.Replicas != replicas {
-		log.Info("Deployment spec.replicas change", "from", *found.Spec.Replicas, "to", replicas)
-		found.Spec.Replicas = &replicas
+	if *foundDeployment.Spec.Replicas != replicas {
+		log.Info("Deployment spec.replicas change", "from", *foundDeployment.Spec.Replicas, "to", replicas)
+		foundDeployment.Spec.Replicas = &replicas
 		needUpd = true
 	}
 
-	if (*found).Spec.Template.Spec.Containers[0].Image != image {
-		log.Info("Deployment spec.template.spec.container[0].image change", "from", (*found).Spec.Template.Spec.Containers[0].Image, "to", image)
-		found.Spec.Template.Spec.Containers[0].Image = image
+	if (*foundDeployment).Spec.Template.Spec.Containers[0].Image != image {
+		log.Info("Deployment spec.template.spec.container[0].image change", "from", (*foundDeployment).Spec.Template.Spec.Containers[0].Image, "to", image)
+		foundDeployment.Spec.Template.Spec.Containers[0].Image = image
 		needUpd = true
 	}
 	if needUpd {
-		err = r.Update(ctx, found)
+		err = r.Update(ctx, foundDeployment)
 		if err != nil {
-			log.Error(err, "Failed to update Deployment", "Deployment.Namespace", found.Namespace, "Deployment.Name", found.Name)
+			log.Error(err, "Failed to update Deployment", "Deployment.Namespace", foundDeployment.Namespace, "Deployment.Name", foundDeployment.Name)
 			return ctrl.Result{RequeueAfter: time.Second * 5}, err
 		}
 		// Spec updated - return and requeue
@@ -112,10 +116,10 @@ func (r *WebServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	// Check if the webserver service already exists, if not, create a new one
 	foundService := &k8scorev1.Service{}
-	err = r.Get(ctx, types.NamespacedName{Name: webServer.Name + "-service", Namespace: webServer.Namespace}, foundService)
+	err = r.Get(ctx, types.NamespacedName{Name: instance.Name + "-service", Namespace: instance.Namespace}, foundService)
 	if err != nil && errors.IsNotFound(err) {
 		//define a new service
-		service := r.CreateService(webServer)
+		service := r.defineService(instance)
 		log.Info("Creating a new Service", "Service.Namespace", service.Namespace, "Service.Name", service.Name)
 		err = r.Create(ctx, service)
 		if err != nil {
@@ -139,9 +143,9 @@ func (r *WebServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *WebServerReconciler) CreateDeployment(webServer *appv1.WebServer) *k8sappsv1.Deployment {
+func (r *WebServerReconciler) defineDeployment(webServer *appv1.WebServer) *k8sappsv1.Deployment {
 	labels := labelForWebServer(webServer.Name)
-	var replicas int32 = int32(webServer.Spec.Replica)
+	var replicas int32 = int32(webServer.Spec.Replicas)
 
 	deployment := &k8sappsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -160,7 +164,7 @@ func (r *WebServerReconciler) CreateDeployment(webServer *appv1.WebServer) *k8sa
 				Spec: k8scorev1.PodSpec{
 					Containers: []k8scorev1.Container{
 						{
-							Name:            "webServer",
+							Name:            "webserver",
 							Image:           webServer.Spec.Image,
 							ImagePullPolicy: "IfNotPresent",
 							Ports: []k8scorev1.ContainerPort{
@@ -182,10 +186,10 @@ func (r *WebServerReconciler) CreateDeployment(webServer *appv1.WebServer) *k8sa
 }
 
 func labelForWebServer(name string) map[string]string {
-	return map[string]string{"app": "webServer", "webserver_cr": name}
+	return map[string]string{"app": "webserver", "webserver_cr": name}
 }
 
-func (r *WebServerReconciler) CreateService(webServer *appv1.WebServer) *k8scorev1.Service {
+func (r *WebServerReconciler) defineService(webServer *appv1.WebServer) *k8scorev1.Service {
 	labels := labelForWebServer(webServer.Name)
 	service := &k8scorev1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -207,7 +211,7 @@ func (r *WebServerReconciler) CreateService(webServer *appv1.WebServer) *k8score
 				},
 			},
 			Selector: map[string]string{
-				"app":          "webServer",
+				"app":          "webserver",
 				"webserver_cr": webServer.Name,
 			},
 		},

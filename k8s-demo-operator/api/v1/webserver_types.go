@@ -29,7 +29,7 @@ type WebServerSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	//the number of replica the webserver should have
-	Replica int32 `json:"replica,omitempty"`
+	Replicas int `json:"replica,omitempty"`
 	//the container image of the webserver
 	Image string `json:"image,omitempty"`
 	// Foo is an example field of WebServer. Edit webserver_types.go to remove/update
@@ -40,7 +40,7 @@ type WebServerSpec struct {
 type WebServerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	RealReplica int32 `json:"realReplica,omitempty"`
+	//RealReplica int32 `json:"realReplica,omitempty"`
 }
 
 //+kubebuilder:object:root=true

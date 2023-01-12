@@ -44,18 +44,10 @@ spec:
                 type: string
               replica:
                 description: the number of replica the webserver should have
-                format: int32
                 type: integer
             type: object
           status:
             description: WebServerStatus defines the observed state of WebServer
-            properties:
-              realReplica:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
-                format: int32
-                type: integer
             type: object
         type: object
     served: true
