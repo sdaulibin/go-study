@@ -1,2 +1,2 @@
 # go-study
-golang学习
+> golang experiments
