@@ -92,6 +92,7 @@ func main() {
 	if err = (&controllers.WebServerReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
+		Log:    ctrl.Log.WithName("controllers").WithName("WebServer"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "WebServer")
 		os.Exit(1)
