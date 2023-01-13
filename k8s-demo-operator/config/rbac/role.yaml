@@ -5,29 +5,54 @@ metadata:
   creationTimestamp: null
   name: manager-role
 rules:
-- apiGroups:
-  - my.domain
-  resources:
-  - webservers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - my.domain
-  resources:
-  - webservers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - my.domain
-  resources:
-  - webservers/status
-  verbs:
-  - get
-  - patch
-  - update
+  - apiGroups:
+      - my.domain
+    resources:
+      - webservers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - my.domain
+    resources:
+      - webservers/finalizers
+    verbs:
+      - update
+  - apiGroups:
+      - my.domain
+    resources:
+      - webservers/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - apps
+      - ""
+    resources:
+      - services
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
