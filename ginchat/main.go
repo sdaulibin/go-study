@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"ginchat/router"
+)
 
 func main() {
-	fmt.Println("Hello World")
+	r := router.Router()
+	r.Run(":8081")
 }
