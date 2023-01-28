@@ -1,6 +1,10 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type UserBasic struct {
 	gorm.Model
@@ -11,9 +15,9 @@ type UserBasic struct {
 	Identity      string
 	ClientIp      string
 	ClientPort    string
-	LoginTime     uint64
-	HeartbeatTime uint64
-	LogOutTime    uint64
+	LoginTime     time.Time
+	HeartbeatTime time.Time
+	LoginOutTime  time.Time
 	IsLogOut      bool
 	DeviceInfo    string
 }
