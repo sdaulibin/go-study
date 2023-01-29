@@ -12,8 +12,8 @@ type UserBasic struct {
 	gorm.Model
 	Name          string
 	Password      string
-	Phone         string
-	Email         string
+	Phone         string `valid:"matches(^1[3-9]{1}\\d{9})"`
+	Email         string `valid:"email"`
 	Identity      string
 	ClientIp      string
 	ClientPort    string
@@ -43,4 +43,13 @@ func CreateUser(user UserBasic) *gorm.DB {
 
 func DeleteUser(user UserBasic) *gorm.DB {
 	return utils.DB.Delete(&user)
+}
+
+func UpdateUser(user UserBasic) *gorm.DB {
+	return utils.DB.Model(&user).Updates(UserBasic{
+		Name:     user.Name,
+		Password: user.Password,
+		Phone:    user.Phone,
+		Email:    user.Email,
+	})
 }
