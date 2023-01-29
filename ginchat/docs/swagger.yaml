@@ -8,6 +8,8 @@ paths:
           description: OK
           schema:
             type: string
+      tags:
+      - 首页
   /user/getUserList:
     get:
       responses:

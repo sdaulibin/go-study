@@ -9,7 +9,7 @@ import (
 
 // GetUserList
 // @Tag 用户列表
-// @Success 200 {string} json{"code","message"}
+// @Success 200 {string}  json{"code","message"}
 // @Router /user/getUserList [get]
 func GetUserList(ctx *gin.Context) {
 	data := models.GetUserList()

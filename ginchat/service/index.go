@@ -7,7 +7,7 @@ import (
 )
 
 // GetIndex
-// @Tag 首页
+// @Tags 首页
 // @Success 200 {string} welcome
 // @Router /index [get]
 func GetIndex(ctx *gin.Context) {

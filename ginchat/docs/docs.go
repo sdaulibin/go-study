@@ -17,6 +17,9 @@ const docTemplate = `{
     "paths": {
         "/index": {
             "get": {
+                "tags": [
+                    "首页"
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
