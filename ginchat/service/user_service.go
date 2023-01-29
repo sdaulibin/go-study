@@ -3,8 +3,11 @@ package service
 import (
 	"fmt"
 	"ginchat/models"
+	"ginchat/utils"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
@@ -18,7 +21,44 @@ import (
 func GetUserList(ctx *gin.Context) {
 	data := models.GetUserList()
 	ctx.JSON(http.StatusOK, gin.H{
-		"data": data,
+		"code":    0,
+		"message": "查新列表成功！",
+		"data":    data,
+	})
+}
+
+// GetUser
+// @Tags 用户模块
+// @Summary 获取用户
+// @param name formData string false "用户名"
+// @param password formData string false "密码"
+// @Success 200 {string}  json{"code","message"}
+// @Router /user/getUser [post]
+func GetUser(ctx *gin.Context) {
+	name := ctx.PostForm("name")
+	password := ctx.PostForm("password")
+	user := models.FindUserByName(name)
+	if user.Name == "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    -1,
+			"message": fmt.Sprintf("用户>%s 错误！！", name),
+		})
+		return
+	}
+	flag := utils.ValidatePwd(password, user.Salt, user.Password)
+	if !flag {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    -1,
+			"message": "密码错误！",
+		})
+		return
+	}
+	models.UpdateUserToken(user)
+	data := models.FindUserByNameAndPwd(name, utils.MakePassword(password, user.Salt))
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    0,
+		"message": fmt.Sprintf("获取用户%s成功！", user.Name),
+		"data":    data,
 	})
 }
 
@@ -36,14 +76,27 @@ func CreateUser(ctx *gin.Context) {
 	password := ctx.Query("password")
 	repassword := ctx.Query("repassword")
 	if password != repassword {
-		ctx.JSON(-1, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    -1,
 			"message": "两次密码不一致",
 		})
 		return
 	}
-	user.Password = repassword
+	salt := fmt.Sprintf("%06d", rand.Int31())
+	user.Salt = salt
+	user.Password = utils.MakePassword(password, salt)
+	data := models.FindUserByName(user.Name)
+	if data.Name != "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    -1,
+			"message": fmt.Sprintf("用户>%s已注册！", user.Name),
+		})
+		return
+	}
+	user.Identity = utils.MD5Encode(fmt.Sprintf("%d", time.Now().Unix()))
 	models.CreateUser(user)
 	ctx.JSON(http.StatusOK, gin.H{
+		"code":    0,
 		"message": fmt.Sprintf("新增用户%s成功！", user.Name),
 	})
 }
@@ -58,7 +111,8 @@ func DeleteUser(ctx *gin.Context) {
 	user := models.UserBasic{}
 	idStr := ctx.Query("id")
 	if idStr == "" {
-		ctx.JSON(-1, gin.H{
+		ctx.JSON(http.StatusOK, gin.H{
+			"code":    -1,
 			"message": "用户名id不能为空",
 		})
 		return
@@ -67,6 +121,7 @@ func DeleteUser(ctx *gin.Context) {
 	user.ID = uint(id)
 	models.DeleteUser(user)
 	ctx.JSON(http.StatusOK, gin.H{
+		"code":    0,
 		"message": fmt.Sprintf("删除用户id>%s成功！", idStr),
 	})
 }
@@ -97,12 +152,14 @@ func UpdateUser(ctx *gin.Context) {
 	if err != nil {
 		fmt.Println("err:", err)
 		ctx.JSON(http.StatusOK, gin.H{
+			"code":    -1,
 			"message": fmt.Sprintf("修改用户>%s失败: %s！", name, err),
 		})
 		return
 	}
 	models.UpdateUser(user)
 	ctx.JSON(http.StatusOK, gin.H{
+		"code":    0,
 		"message": fmt.Sprintf("修改用户%s成功！", name),
 	})
 }

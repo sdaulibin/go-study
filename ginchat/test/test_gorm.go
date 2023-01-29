@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"ginchat/models"
 
 	"gorm.io/driver/mysql"
@@ -17,15 +16,15 @@ func main() {
 	// 迁移 schema
 	db.AutoMigrate(&models.UserBasic{})
 
-	user := &models.UserBasic{
-		Name: "木子木木三",
-	}
+	// user := &models.UserBasic{
+	// 	Name: "木子木木三",
+	// }
 
-	// Create
-	db.Create(user)
+	// // Create
+	// db.Create(user)
 
-	d := db.First(user, 1)
-	fmt.Print(d)
+	// d := db.First(user, 1)
+	// fmt.Print(d)
 
-	db.Model(user).Update("Password", "4567")
+	// db.Model(user).Update("Password", "4567")
 }
