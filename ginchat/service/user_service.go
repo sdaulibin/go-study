@@ -11,6 +11,7 @@ import (
 
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
 
 // GetUserList
@@ -162,4 +163,43 @@ func UpdateUser(ctx *gin.Context) {
 		"code":    0,
 		"message": fmt.Sprintf("修改用户%s成功！", name),
 	})
+}
+
+var upGrade = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func SendMsg(ctx *gin.Context) {
+	ws, err := upGrade.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer func(ws *websocket.Conn) {
+		err = ws.Close()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}(ws)
+	msgHandler(ws, ctx)
+}
+
+func msgHandler(ws *websocket.Conn, ctx *gin.Context) {
+	msg, err := utils.Subscribe(ctx, utils.PUBLISH_KEY)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	tm := time.Now().Format("2006-01-02 15:04:05")
+	message := fmt.Sprintf("[ws][%s]:%s", tm, msg)
+	fmt.Println("send message: ", message)
+	err = ws.WriteMessage(1, []byte(message))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 }
