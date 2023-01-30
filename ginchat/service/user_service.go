@@ -189,6 +189,7 @@ func SendMsg(ctx *gin.Context) {
 }
 
 func msgHandler(ws *websocket.Conn, ctx *gin.Context) {
+	fmt.Println("ctx: ", ctx)
 	msg, err := utils.Subscribe(ctx, utils.PUBLISH_KEY)
 	if err != nil {
 		fmt.Println(err)

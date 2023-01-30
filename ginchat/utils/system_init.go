@@ -75,7 +75,7 @@ func Publish(ctx context.Context, channel string, msg string) error {
 
 func Subscribe(ctx context.Context, channel string) (string, error) {
 	sub := RedisClient.Subscribe(ctx, channel)
-	fmt.Println("Subscribe>>>>>>", sub)
+	fmt.Println("Subscribe >>>>>>", sub)
 	msg, err := sub.ReceiveMessage(ctx)
 	if err != nil {
 		fmt.Println(err)
