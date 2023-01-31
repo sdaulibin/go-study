@@ -1,7 +1,9 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"strconv"
 	"sync"
@@ -89,4 +91,61 @@ func recvProc(node *Node) {
 		}
 		fmt.Println("[ws] <<<<<< ", data)
 	}
+}
+
+var upSendChan chan []byte = make(chan []byte, 1024)
+
+func broadMsg(data []byte) {
+	upSendChan <- data
+}
+
+func udpSendProc() {
+	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{
+		IP:   net.IPv4(127, 0, 0, 1),
+		Port: 3000,
+	})
+	defer conn.Close()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for {
+		select {
+		case data := <-upSendChan:
+			_, err := conn.Write(data)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
+	}
+}
+
+func updRecvProc() {
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{
+		IP:   net.IPv4zero,
+		Port: 3000,
+	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer conn.Close()
+}
+
+func dispatch(data []byte) {
+	msg := Message{}
+	err := json.Unmarshal(data, &msg)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	switch msg {
+	case 1:
+		sendMsg()
+	}
+}
+
+func sendMsg() {
+
 }
