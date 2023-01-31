@@ -17,7 +17,7 @@ type Message struct {
 	gorm.Model
 	FromId   uint
 	TargetId uint
-	Type     string
+	Type     int
 	Media    int
 	Content  string
 	Pic      string
@@ -140,7 +140,7 @@ func dispatch(data []byte) {
 		fmt.Println(err)
 		return
 	}
-	switch msg {
+	switch msg.Type {
 	case 1:
 		sendMsg()
 	}
