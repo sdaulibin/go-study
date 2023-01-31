@@ -15,8 +15,8 @@ import (
 
 type Message struct {
 	gorm.Model
-	FromId   uint
-	TargetId uint
+	FromId   int64
+	TargetId int64
 	Type     int
 	Media    int
 	Content  string
@@ -45,9 +45,9 @@ func Chat(writer http.ResponseWriter, request *http.Request) {
 	id := query.Get("userId")
 	userId, _ := strconv.ParseInt(id, 10, 64)
 	//token := query.Get("token")
-	targetId := query.Get("targetId")
-	context := query.Get("context")
-	msgType := query.Get("type")
+	//targetId := strconv.ParseInt(query.Get("targetId"), 10, 64)
+	//context := query.Get("context")
+	//msgType := query.Get("type")
 
 	isvalidate := true
 	conn, err := (&websocket.Upgrader{
@@ -67,6 +67,10 @@ func Chat(writer http.ResponseWriter, request *http.Request) {
 	rwLocker.Lock()
 	clientMap[userId] = node
 	rwLocker.Unlock()
+
+	go sendProc(node)
+	go recvProc(node)
+	sendMsg(userId, []byte("欢迎进入聊天室。。。。。。"))
 }
 
 func sendProc(node *Node) {
@@ -99,16 +103,21 @@ func broadMsg(data []byte) {
 	upSendChan <- data
 }
 
+func init() {
+	go udpSendProc()
+	go updRecvProc()
+}
+
 func udpSendProc() {
 	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{
 		IP:   net.IPv4(127, 0, 0, 1),
 		Port: 3000,
 	})
-	defer conn.Close()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	defer conn.Close()
 	for {
 		select {
 		case data := <-upSendChan:
@@ -131,6 +140,16 @@ func updRecvProc() {
 		return
 	}
 	defer conn.Close()
+
+	for {
+		var buf [512]byte
+		n, err := conn.Read(buf[0:])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		dispatch(buf[0:n])
+	}
 }
 
 func dispatch(data []byte) {
@@ -141,11 +160,20 @@ func dispatch(data []byte) {
 		return
 	}
 	switch msg.Type {
-	case 1:
-		sendMsg()
+	case 1: //私信
+		sendMsg(msg.TargetId, data)
+		//case 2: //群发
+		//	sendGroupMsg()
+		//case 3: //广播
+		//	sendAllMsg()
 	}
 }
 
-func sendMsg() {
-
+func sendMsg(userId int64, data []byte) {
+	rwLocker.RLock()
+	node, ok := clientMap[userId]
+	if ok {
+		node.DataQueue <- data
+	}
+	rwLocker.RUnlock()
 }

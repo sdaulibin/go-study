@@ -7,7 +7,7 @@ import (
 type GroupBasic struct {
 	gorm.Model
 	Name    string
-	OwnerId uint
+	OwnerId int64
 	Type    int
 	Desc    string
 }

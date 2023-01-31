@@ -4,8 +4,8 @@ import "gorm.io/gorm"
 
 type Contact struct {
 	gorm.Model
-	OwnerId  uint
-	TargetId uint
+	OwnerId  int64
+	TargetId int64
 	Type     int
 }
 
