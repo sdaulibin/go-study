@@ -26,11 +26,11 @@
                 <input v-model="user.password" placeholder="请输入密码" type="password" class="mui-input-clear mui-input">
             </div>
             <div class="mui-input-row">
-                <input v-model="user.Identity" placeholder="再输入密码" type="password" class="mui-input-clear mui-input">
+                <input v-model="user.repassword" placeholder="再输入密码" type="password" class="mui-input-clear mui-input">
             </div>
         </form>
         <div class="mui-content-padded">
-            <button @click="login" type="button" class="mui-btn mui-btn-block mui-btn-primary btn-register">注册</button>
+            <button @click="register" type="button" class="mui-btn mui-btn-block mui-btn-primary btn-register">注册</button>
             <div class="link-area"><a id='reg' href="/index">登录账号</a> <span class="spliter">|</span> <a
                     id='forgetPassword'>忘记密码</a>
             </div>
@@ -49,12 +49,12 @@
                 user: {
                     name: "",
                     password: "",
-                    Identity: "",
+                    repassword: "",
                 }
             }
         },
         methods: {
-            login: function () {
+            register: function () {
                 //检测密码是否为空
                 console.log(this.user)
                 //网络请求
@@ -62,7 +62,7 @@
                 util.post("/user/createUser", this.user).then(res => {
                     console.log(res)
                     if (res.code != 0) {
-                        mui.toast(res.message)
+                        mui.toast(res.msg)
                     } else {
                         //location.replace("localhost:8081")
                         location.href = "/"

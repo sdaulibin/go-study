@@ -22,3 +22,11 @@ func GetIndex(ctx *gin.Context) {
 	fmt.Println(index)
 	index.Execute(ctx.Writer, "index")
 }
+
+func Register(ctx *gin.Context) {
+	register, err := template.ParseFiles("views/user/register.html")
+	if err != nil {
+		panic(err)
+	}
+	register.Execute(ctx.Writer, "register")
+}

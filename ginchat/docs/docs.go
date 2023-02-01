@@ -31,7 +31,7 @@ const docTemplate = `{
             }
         },
         "/user/createUser": {
-            "get": {
+            "post": {
                 "tags": [
                     "用户模块"
                 ],
@@ -41,19 +41,19 @@ const docTemplate = `{
                         "type": "string",
                         "description": "用户名",
                         "name": "name",
-                        "in": "query"
+                        "in": "formData"
                     },
                     {
                         "type": "string",
                         "description": "密码",
                         "name": "password",
-                        "in": "query"
+                        "in": "formData"
                     },
                     {
                         "type": "string",
                         "description": "确认密码",
                         "name": "repassword",
-                        "in": "query"
+                        "in": "formData"
                     }
                 ],
                 "responses": {

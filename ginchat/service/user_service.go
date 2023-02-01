@@ -66,17 +66,17 @@ func GetUser(ctx *gin.Context) {
 // CreateUser
 // @Tags 用户模块
 // @Summary 用户新增
-// @param name query string false "用户名"
-// @param password query string false "密码"
-// @param repassword query string false "确认密码"
+// @param name formData string false "用户名"
+// @param password formData string false "密码"
+// @param repassword formData string false "确认密码"
 // @Success 200 {string}  json{"code","message"}
-// @Router /user/createUser [get]
+// @Router /user/createUser [post]
 func CreateUser(ctx *gin.Context) {
 	user := models.UserBasic{}
-	user.Name = ctx.Query("name")
-	password := ctx.Query("password")
-	repassword := ctx.Query("repassword")
-	if user.Name == "" || password == "" {
+	user.Name = ctx.Request.FormValue("name")
+	password := ctx.Request.FormValue("password")
+	repassword := ctx.Request.FormValue("repassword")
+	if user.Name == "" || password == "" || repassword == "" {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": -1,
 			"msg":  "用户名或密码不能为空",
@@ -97,7 +97,7 @@ func CreateUser(ctx *gin.Context) {
 	if data.Name != "" {
 		ctx.JSON(http.StatusOK, gin.H{
 			"code": -1,
-			"msg":  fmt.Sprintf("用户>%s已注册！", user.Name),
+			"msg":  fmt.Sprintf("用户>%s<已注册！", user.Name),
 		})
 		return
 	}
@@ -105,7 +105,7 @@ func CreateUser(ctx *gin.Context) {
 	models.CreateUser(user)
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": 0,
-		"msg":  fmt.Sprintf("新增用户%s成功！", user.Name),
+		"msg":  fmt.Sprintf("新增用户>%s<成功！", user.Name),
 	})
 }
 
