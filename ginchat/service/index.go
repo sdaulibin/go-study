@@ -1,7 +1,8 @@
 package service
 
 import (
-	"text/template"
+	"fmt"
+	"html/template"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,5 +19,6 @@ func GetIndex(ctx *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(index)
 	index.Execute(ctx.Writer, "index")
 }
