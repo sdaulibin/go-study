@@ -36,30 +36,30 @@ func GetUserList(ctx *gin.Context) {
 // @Success 200 {string}  json{"code","message"}
 // @Router /user/getUser [post]
 func GetUser(ctx *gin.Context) {
-	name := ctx.PostForm("name")
-	password := ctx.PostForm("password")
+	name := ctx.Request.FormValue("name")
+	password := ctx.Request.FormValue("password")
 	user := models.FindUserByName(name)
 	if user.Name == "" {
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": fmt.Sprintf("用户>%s 错误！！", name),
+			"code": -1,
+			"msg":  fmt.Sprintf("用户>%s 错误！！", name),
 		})
 		return
 	}
 	flag := utils.ValidatePwd(password, user.Salt, user.Password)
 	if !flag {
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": "密码错误！",
+			"code": -1,
+			"msg":  "密码错误！",
 		})
 		return
 	}
 	models.UpdateUserToken(user)
 	data := models.FindUserByNameAndPwd(name, utils.MakePassword(password, user.Salt))
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    0,
-		"message": fmt.Sprintf("获取用户%s成功！", user.Name),
-		"data":    data,
+		"code": 0,
+		"msg":  fmt.Sprintf("获取用户%s成功！", user.Name),
+		"data": data,
 	})
 }
 
