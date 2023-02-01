@@ -76,10 +76,17 @@ func CreateUser(ctx *gin.Context) {
 	user.Name = ctx.Query("name")
 	password := ctx.Query("password")
 	repassword := ctx.Query("repassword")
+	if user.Name == "" || password == "" {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": -1,
+			"msg":  "用户名或密码不能为空",
+		})
+		return
+	}
 	if password != repassword {
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": "两次密码不一致",
+			"code": -1,
+			"msg":  "两次密码不一致",
 		})
 		return
 	}
@@ -89,16 +96,16 @@ func CreateUser(ctx *gin.Context) {
 	data := models.FindUserByName(user.Name)
 	if data.Name != "" {
 		ctx.JSON(http.StatusOK, gin.H{
-			"code":    -1,
-			"message": fmt.Sprintf("用户>%s已注册！", user.Name),
+			"code": -1,
+			"msg":  fmt.Sprintf("用户>%s已注册！", user.Name),
 		})
 		return
 	}
 	user.Identity = utils.MD5Encode(fmt.Sprintf("%d", time.Now().Unix()))
 	models.CreateUser(user)
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    0,
-		"message": fmt.Sprintf("新增用户%s成功！", user.Name),
+		"code": 0,
+		"msg":  fmt.Sprintf("新增用户%s成功！", user.Name),
 	})
 }
 
