@@ -1,7 +1,7 @@
 package service
 
 import (
-	"net/http"
+	"text/template"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,7 +11,12 @@ import (
 // @Success 200 {string} welcome
 // @Router /index [get]
 func GetIndex(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"meaasge": "welcome hello !!!!",
-	})
+	// ctx.JSON(http.StatusOK, gin.H{
+	// 	"meaasge": "welcome hello !!!!",
+	// })
+	index, err := template.ParseFiles("index.html")
+	if err != nil {
+		panic(err)
+	}
+	index.Execute(ctx.Writer, "index")
 }
