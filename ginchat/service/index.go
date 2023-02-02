@@ -15,7 +15,7 @@ func GetIndex(ctx *gin.Context) {
 	// ctx.JSON(http.StatusOK, gin.H{
 	// 	"meaasge": "welcome hello !!!!",
 	// })
-	index, err := template.ParseFiles("index.html")
+	index, err := template.ParseFiles("index.html", "views/chat/head.html")
 	if err != nil {
 		panic(err)
 	}
