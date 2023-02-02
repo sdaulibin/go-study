@@ -15,10 +15,10 @@ import (
 
 type Message struct {
 	gorm.Model
-	FromId   int64
-	TargetId int64
-	Type     int
-	Media    int
+	FromId   int64 // 发送者
+	TargetId int64 // 接收者
+	Type     int   // 1-私聊，2-群聊，3-广播
+	Media    int   // 1-文字，2-表情包，3-图片，4-音频
 	Content  string
 	Pic      string
 	Url      string

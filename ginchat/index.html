@@ -60,7 +60,8 @@
                     if(res.code!=0){
                         mui.toast(res.msg)
                     }else{
-                        //location.replace("//127.0.0.1/demo/index.shtml")
+                        var url = "/toChat?userId="+res.data.ID+"&token="+res.data.Identity
+                        location.replace("//127.0.0.1:8081"+url)
                         mui.toast("登录成功,即将跳转")
                     }
                 })
