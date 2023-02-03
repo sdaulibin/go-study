@@ -42,6 +42,12 @@ func CreateUser(user UserBasic) *gorm.DB {
 	return utils.DB.Create(&user)
 }
 
+func FindUserByID(id uint) UserBasic {
+	user := UserBasic{}
+	utils.DB.Where("ID = ?", id).First(&user)
+	return user
+}
+
 func FindUserByName(name string) UserBasic {
 	user := UserBasic{}
 	utils.DB.Where("name = ?", name).First(&user)

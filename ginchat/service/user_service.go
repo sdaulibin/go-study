@@ -215,3 +215,8 @@ func msgHandler(ws *websocket.Conn, ctx *gin.Context) {
 func SendUserMsg(ctx *gin.Context) {
 	models.Chat(ctx.Writer, ctx.Request)
 }
+
+func SearchFriends(ctx *gin.Context) {
+	userId, _ := strconv.Atoi(ctx.PostForm("id"))
+	models.SearchFriends(uint(userId))
+}
