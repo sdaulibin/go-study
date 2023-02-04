@@ -217,11 +217,12 @@ func SendUserMsg(ctx *gin.Context) {
 }
 
 func SearchFriends(ctx *gin.Context) {
-	userId, _ := strconv.Atoi(ctx.Query("userId"))
+	userId, _ := strconv.Atoi(ctx.Request.FormValue("userId"))
 	users := models.SearchFriends(uint(userId))
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": 0,
 		"msg":  fmt.Sprintf("获取好友列表成功！>%d<", userId),
 		"data": users,
+		"Rows": users,
 	})
 }
