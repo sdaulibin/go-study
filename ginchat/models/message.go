@@ -77,6 +77,7 @@ func sendProc(node *Node) {
 	for {
 		select {
 		case data := <-node.DataQueue:
+			fmt.Println("[ws] sendMsg >>>>> msg: ", string(data))
 			err := node.Conn.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				fmt.Println(err)
@@ -93,7 +94,7 @@ func recvProc(node *Node) {
 			fmt.Println(err)
 			return
 		}
-		fmt.Println("[ws] <<<<<< ", data)
+		fmt.Println("[ws] recvMsg <<<<<< msg: ", string(data))
 	}
 }
 
@@ -106,6 +107,7 @@ func broadMsg(data []byte) {
 func init() {
 	go udpSendProc()
 	go updRecvProc()
+	fmt.Println("init goroutine ......")
 }
 
 func udpSendProc() {
@@ -121,6 +123,7 @@ func udpSendProc() {
 	for {
 		select {
 		case data := <-upSendChan:
+			fmt.Println("udpSendProc data: ", string(data))
 			_, err := conn.Write(data)
 			if err != nil {
 				fmt.Println(err)
@@ -161,6 +164,7 @@ func dispatch(data []byte) {
 	}
 	switch msg.Type {
 	case 1: //私信
+		fmt.Println("dispatch data: ", string(data))
 		sendMsg(msg.TargetId, data)
 		//case 2: //群发
 		//	sendGroupMsg()
