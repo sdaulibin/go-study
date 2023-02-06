@@ -36,8 +36,10 @@ type Node struct {
 	GroupSets set.Interface
 }
 
+// 映射关系
 var clientMap map[int64]*Node = make(map[int64]*Node, 0)
 
+// 读写锁
 var rwLocker sync.RWMutex
 
 func Chat(writer http.ResponseWriter, request *http.Request) {
@@ -68,16 +70,18 @@ func Chat(writer http.ResponseWriter, request *http.Request) {
 	clientMap[userId] = node
 	rwLocker.Unlock()
 
+	fmt.Println("message start")
 	go sendProc(node)
 	go recvProc(node)
 	sendMsg(userId, []byte("欢迎进入聊天室。。。。。。"))
 }
 
 func sendProc(node *Node) {
+	fmt.Println("[ws] sendProc >>>>> start")
 	for {
 		select {
 		case data := <-node.DataQueue:
-			fmt.Println("[ws] sendMsg >>>>> msg: ", string(data))
+			fmt.Println("[ws]sendProc >>>> msg :", string(data))
 			err := node.Conn.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				fmt.Println(err)
@@ -88,12 +92,14 @@ func sendProc(node *Node) {
 }
 
 func recvProc(node *Node) {
+	fmt.Println("[ws] recvProc >>>>> start ")
 	for {
 		_, data, err := node.Conn.ReadMessage()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+		dispatch(data)
 		fmt.Println("[ws] recvMsg <<<<<< msg: ", string(data))
 	}
 }
@@ -162,6 +168,7 @@ func dispatch(data []byte) {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("dispatch msg type: ", msg.Type)
 	switch msg.Type {
 	case 1: //私信
 		fmt.Println("dispatch data: ", string(data))
@@ -174,8 +181,13 @@ func dispatch(data []byte) {
 }
 
 func sendMsg(userId int64, data []byte) {
+	fmt.Println("sendMsg userId>>>>> ", userId)
+	for k, v := range clientMap {
+		fmt.Println(k, "<<<<>>>>", v)
+	}
 	rwLocker.RLock()
 	node, ok := clientMap[userId]
+	fmt.Println("sendMsg OK:", ok)
 	if ok {
 		node.DataQueue <- data
 	}
