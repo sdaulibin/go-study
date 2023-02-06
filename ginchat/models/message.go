@@ -81,7 +81,7 @@ func sendProc(node *Node) {
 	for {
 		select {
 		case data := <-node.DataQueue:
-			fmt.Println("[ws]sendProc >>>> msg :", string(data))
+			fmt.Println("[ws] sendProc >>>> msg :", string(data))
 			err := node.Conn.WriteMessage(websocket.TextMessage, data)
 			if err != nil {
 				fmt.Println(err)
@@ -180,16 +180,16 @@ func dispatch(data []byte) {
 	}
 }
 
-func sendMsg(userId int64, data []byte) {
-	fmt.Println("sendMsg userId>>>>> ", userId)
-	for k, v := range clientMap {
-		fmt.Println(k, "<<<<>>>>", v)
-	}
+func sendMsg(userId int64, msg []byte) {
+	fmt.Println("sendMsg >>>>> userId: ", userId, " msg: ", string(msg))
+	// for k, v := range clientMap {
+	// 	fmt.Println(k, "<<<<>>>>", v)
+	// }
 	rwLocker.RLock()
 	node, ok := clientMap[userId]
-	fmt.Println("sendMsg OK:", ok)
-	if ok {
-		node.DataQueue <- data
-	}
+	//fmt.Println("sendMsg OK:", ok)
 	rwLocker.RUnlock()
+	if ok {
+		node.DataQueue <- msg
+	}
 }
