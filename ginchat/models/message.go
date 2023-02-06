@@ -70,14 +70,12 @@ func Chat(writer http.ResponseWriter, request *http.Request) {
 	clientMap[userId] = node
 	rwLocker.Unlock()
 
-	fmt.Println("message start")
 	go sendProc(node)
 	go recvProc(node)
 	sendMsg(userId, []byte("欢迎进入聊天室。。。。。。"))
 }
 
 func sendProc(node *Node) {
-	fmt.Println("[ws] sendProc >>>>> start")
 	for {
 		select {
 		case data := <-node.DataQueue:
@@ -92,7 +90,6 @@ func sendProc(node *Node) {
 }
 
 func recvProc(node *Node) {
-	fmt.Println("[ws] recvProc >>>>> start ")
 	for {
 		_, data, err := node.Conn.ReadMessage()
 		if err != nil {
@@ -100,6 +97,7 @@ func recvProc(node *Node) {
 			return
 		}
 		dispatch(data)
+		//broadMsg(data)
 		fmt.Println("[ws] recvMsg <<<<<< msg: ", string(data))
 	}
 }
@@ -118,7 +116,7 @@ func init() {
 
 func udpSendProc() {
 	conn, err := net.DialUDP("udp", nil, &net.UDPAddr{
-		IP:   net.IPv4(127, 0, 0, 1),
+		IP:   net.IPv4(172, 168, 255, 255),
 		Port: 3000,
 	})
 	if err != nil {
@@ -157,6 +155,7 @@ func updRecvProc() {
 			fmt.Println(err)
 			return
 		}
+		fmt.Println("udpSendProc data: ", string(buf[0:n]))
 		dispatch(buf[0:n])
 	}
 }

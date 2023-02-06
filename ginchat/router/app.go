@@ -24,6 +24,7 @@ func Router() *gin.Engine {
 	r.GET("/index", service.GetIndex)
 	r.GET("/user/register", service.Register)
 	r.GET("/toChat", service.ToChat)
+	r.GET("/chat", service.Chat)
 	r.POST("/searchFriends", service.SearchFriends)
 
 	//user
