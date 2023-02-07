@@ -226,3 +226,14 @@ func SearchFriends(ctx *gin.Context) {
 		"Rows": users,
 	})
 }
+
+func AddFriend(ctx *gin.Context) {
+	userId, _ := strconv.Atoi(ctx.Request.FormValue("userId"))
+	targetName := ctx.Request.FormValue("targetName")
+	code := models.AddFriend(uint(userId), targetName)
+	if code == 0 {
+		utils.RespOk(ctx.Writer, nil, fmt.Sprintf("添加好友成功！>%s<", targetName))
+	} else {
+		utils.RespFail(ctx.Writer, fmt.Sprintf("添加好友失败！>%s<", targetName))
+	}
+}

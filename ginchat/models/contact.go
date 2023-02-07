@@ -8,9 +8,9 @@ import (
 
 type Contact struct {
 	gorm.Model
-	OwnerId  uint
-	TargetId uint
-	Type     int //1-好友 2-群组 3-
+	OwnerId  uint //谁的关系信息
+	TargetId uint //对应的谁
+	Type     int  //1-好友 2-群 3-xxx
 }
 
 func (table *Contact) TableName() string {
@@ -26,4 +26,21 @@ func SearchFriends(userId uint) []UserBasic {
 		users = append(users, user)
 	}
 	return users
+}
+
+func AddFriend(userId uint, targetName string) int {
+	user := UserBasic{}
+	if targetName != "" {
+		user = FindUserByName(targetName)
+		if user.Salt != "" {
+			contact := Contact{}
+			contact.OwnerId = userId
+			contact.TargetId = user.ID
+			contact.Type = 1
+			utils.DB.Create(&contact)
+			return 0
+		}
+		return -1
+	}
+	return -1
 }
