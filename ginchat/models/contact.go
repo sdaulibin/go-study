@@ -33,11 +33,18 @@ func AddFriend(userId uint, targetName string) int {
 	if targetName != "" {
 		user = FindUserByName(targetName)
 		if user.Salt != "" {
-			contact := Contact{}
-			contact.OwnerId = userId
-			contact.TargetId = user.ID
-			contact.Type = 1
-			utils.DB.Create(&contact)
+			tx := utils.DB.Begin()
+			contact1 := Contact{}
+			contact1.OwnerId = userId
+			contact1.TargetId = user.ID
+			contact1.Type = 1
+			utils.DB.Create(&contact1)
+			contact2 := Contact{}
+			contact2.OwnerId = user.ID
+			contact2.TargetId = userId
+			contact2.Type = 1
+			utils.DB.Create(&contact2)
+			tx.Commit()
 			return 0
 		}
 		return -1
