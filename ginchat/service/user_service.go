@@ -230,10 +230,10 @@ func SearchFriends(ctx *gin.Context) {
 func AddFriend(ctx *gin.Context) {
 	userId, _ := strconv.Atoi(ctx.Request.FormValue("userId"))
 	targetName := ctx.Request.FormValue("targetName")
-	code := models.AddFriend(uint(userId), targetName)
+	code, msg := models.AddFriend(uint(userId), targetName)
 	if code == 0 {
-		utils.RespOk(ctx.Writer, nil, fmt.Sprintf("添加好友成功！>%s<", targetName))
+		utils.RespOk(ctx.Writer, nil, msg)
 	} else {
-		utils.RespFail(ctx.Writer, fmt.Sprintf("添加好友失败！>%s<", targetName))
+		utils.RespFail(ctx.Writer, msg)
 	}
 }
