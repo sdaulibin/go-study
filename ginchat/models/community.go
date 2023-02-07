@@ -37,3 +37,9 @@ func CreateCommunity(community Community) (int, string) {
 	}
 	return 0, "建群成功"
 }
+
+func GetCommunities(ownerId uint) ([]*Community, string) {
+	data := make([]*Community, 0)
+	utils.DB.Where("owner_id = ?", ownerId).Find(&data)
+	return data, "查询完成"
+}

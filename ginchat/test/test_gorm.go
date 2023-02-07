@@ -15,9 +15,10 @@ func main() {
 
 	// 迁移 schema
 	//db.AutoMigrate(&models.UserBasic{})
-	db.AutoMigrate(&models.Contact{})
-	db.AutoMigrate(&models.GroupBasic{})
-	db.AutoMigrate(&models.Message{})
+	//db.AutoMigrate(&models.Contact{})
+	//db.AutoMigrate(&models.GroupBasic{})
+	//db.AutoMigrate(&models.Message{})
+	db.AutoMigrate(&models.Community{})
 	// user := &models.UserBasic{
 	// 	Name: "木子木木三",
 	// }

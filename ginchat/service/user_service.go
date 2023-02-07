@@ -239,14 +239,28 @@ func AddFriend(ctx *gin.Context) {
 }
 
 func CreateCommunity(ctx *gin.Context) {
-	userId, _ := strconv.Atoi(ctx.Request.FormValue("userId"))
+	ownerId, _ := strconv.Atoi(ctx.Request.FormValue("ownerId"))
 	name := ctx.Request.FormValue("name")
+	cute := ctx.Request.FormValue("cute")
+	desc := ctx.Request.FormValue("desc")
 	community := &models.Community{}
-	community.OwnerId = uint(userId)
+	community.OwnerId = uint(ownerId)
 	community.Name = name
+	community.Cute = cute
+	community.Desc = desc
 	code, msg := models.CreateCommunity(*community)
 	if code == 0 {
 		utils.RespOk(ctx.Writer, nil, msg)
+	} else {
+		utils.RespFail(ctx.Writer, msg)
+	}
+}
+
+func LoadCommunity(ctx *gin.Context) {
+	ownerId, _ := strconv.Atoi(ctx.Request.FormValue("ownerId"))
+	data, msg := models.GetCommunities(uint(ownerId))
+	if len(data) != 0 {
+		utils.RespOkList(ctx.Writer, data, msg, len(data))
 	} else {
 		utils.RespFail(ctx.Writer, msg)
 	}
