@@ -265,3 +265,14 @@ func LoadCommunity(ctx *gin.Context) {
 		utils.RespFail(ctx.Writer, msg)
 	}
 }
+
+func JoinGroup(ctx *gin.Context) {
+	userId, _ := strconv.Atoi(ctx.Request.FormValue("userId"))
+	comId := ctx.Request.FormValue("comId")
+	data, msg := models.JoinGroup(uint(userId), comId)
+	if data == 0 {
+		utils.RespOk(ctx.Writer, data, msg)
+	} else {
+		utils.RespFail(ctx.Writer, msg)
+	}
+}
