@@ -6,6 +6,7 @@ import (
 	"log"
 	"modbus-plugin/initialize"
 	server_map "modbus-plugin/map"
+	"modbus-plugin/services"
 	"modbus-plugin/utils"
 	"net"
 	"strconv"
@@ -34,16 +35,18 @@ func main() {
 }
 
 func procConn(conn net.Conn) {
-	process(conn)
+	register(conn)
 	key := strconv.FormatInt(time.Now().Unix(), 10)
 	server_map.TcpConnMap[key] = conn
-	delete(server_map.GwChannelMap, key)             // 删除原网关设备通道并新建通道
-	server_map.GwChannelMap[key] = make(chan int, 1) // 创建网关通道
+	//delete(server_map.GwChannelMap, key)             // 删除原网关设备通道并新建通道
+	//server_map.GwChannelMap[key] = make(chan int, 1) // 创建网关通道
 	var s sync.Mutex
 	server_map.TcpConnSyncMap[key] = &s
+	services.Process(key)
 }
 
-func process(conn net.Conn) {
+// 处理注册请求
+func register(conn net.Conn) {
 	reader := bufio.NewReader(conn)
 	var recvByte [128]byte
 	sendByte := make([]byte, 0)
@@ -66,8 +69,9 @@ func process(conn net.Conn) {
 		log.Println("[]byte nextByte : ", hex.EncodeToString(nextByte))
 		log.Println("[]byte flag : ", strconv.FormatInt(flag, 16))
 		if strconv.FormatInt(flag, 16) == "81" {
-			sendByte = utils.BytesCombine(sendByte, []byte{0x64, 0x0C, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00})
+			sendByte = utils.BytesCombine(sendByte, []byte{0x64, 0x0C, 0x00, 0x01})
 			sendByte = utils.BytesCombine(sendByte, nextByte)
+			sendByte = utils.BytesCombine(sendByte, []byte{0x01})
 			crc16 := utils.ModbusCrc16(hex.EncodeToString(sendByte))
 			log.Println("csc16 ====>>>>>:", crc16)
 			crc16Byte, _ := hex.DecodeString(crc16)
@@ -76,8 +80,5 @@ func process(conn net.Conn) {
 			log.Println("send message to device :", hex.EncodeToString(sendByte))
 			conn.Write(sendByte)
 		}
-		time.Sleep(time.Second * time.Duration(5))
-		conn.Write([]byte{0x64, 0x0C, 0x00, 0x01, 0x34, 0x00, 0x00, 0x00, 0x07, 0x61, 0xB0, 0x20})
 	}
-
 }
