@@ -1,49 +1,17 @@
-package main
+package services
 
 import (
 	"bufio"
 	"encoding/hex"
 	"log"
-	"modbus-plugin/initialize"
 	server_map "modbus-plugin/map"
 	"modbus-plugin/utils"
-	"net"
 	"strconv"
-	"sync"
 	"time"
-
-	"github.com/spf13/viper"
 )
 
-func main() {
-	initialize.InitConfig()
-
-	listen, err := net.Listen("tcp", viper.GetString("server.address"))
-	if err != nil {
-		log.Println("listen tcp server port failed, err: ", err, viper.GetString("server.address"))
-	}
-	log.Println("tcp server start success :", viper.GetString("server.address"))
-	for {
-		conn, err := listen.Accept() // 监听客户端的连接请求
-		if err != nil {
-			log.Println("accept conn failed, err: ", err)
-			continue
-		}
-		procConn(conn)
-	}
-}
-
-func procConn(conn net.Conn) {
-	process(conn)
-	key := strconv.FormatInt(time.Now().Unix(), 10)
-	server_map.TcpConnMap[key] = conn
-	delete(server_map.GwChannelMap, key)             // 删除原网关设备通道并新建通道
-	server_map.GwChannelMap[key] = make(chan int, 1) // 创建网关通道
-	var s sync.Mutex
-	server_map.TcpConnSyncMap[key] = &s
-}
-
-func process(conn net.Conn) {
+func Process(conn_key string) {
+	conn := server_map.TcpConnMap[conn_key]
 	reader := bufio.NewReader(conn)
 	var recvByte [128]byte
 	sendByte := make([]byte, 0)
@@ -74,10 +42,12 @@ func process(conn net.Conn) {
 			sendByte = utils.BytesCombine(sendByte, crc16Byte)
 			sendByte = utils.BytesCombine(sendByte, []byte{0x20})
 			log.Println("send message to device :", hex.EncodeToString(sendByte))
+			server_map.TcpConnSyncMap[conn_key].Lock()
 			conn.Write(sendByte)
 		}
-		time.Sleep(time.Second * time.Duration(5))
+		time.Sleep(time.Second * time.Duration(2))
 		conn.Write([]byte{0x64, 0x0C, 0x00, 0x01, 0x34, 0x00, 0x00, 0x00, 0x07, 0x61, 0xB0, 0x20})
+		server_map.TcpConnSyncMap[conn_key].Unlock()
 	}
 
 }
