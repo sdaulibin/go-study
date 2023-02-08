@@ -3,6 +3,8 @@ package main
 import (
 	"ginchat/router"
 	"ginchat/utils"
+
+	"github.com/spf13/viper"
 )
 
 func main() {
@@ -10,5 +12,5 @@ func main() {
 	utils.InitMysql()
 	utils.InitRedis()
 	r := router.Router()
-	r.Run(":8081")
+	r.Run(viper.GetString("port.server"))
 }

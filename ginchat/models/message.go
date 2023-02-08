@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/spf13/viper"
 	"gopkg.in/fatih/set.v0"
 	"gorm.io/gorm"
 )
@@ -31,9 +33,13 @@ func (table *Message) TableName() string {
 }
 
 type Node struct {
-	Conn      *websocket.Conn
-	DataQueue chan []byte
-	GroupSets set.Interface
+	Conn          *websocket.Conn
+	Addr          string //客户端地址
+	DataQueue     chan []byte
+	GroupSets     set.Interface
+	FirstTime     uint64 //首次连接时间
+	HeartbeatTime uint64
+	LoginTime     uint64
 }
 
 // 映射关系
@@ -43,6 +49,7 @@ var clientMap map[int64]*Node = make(map[int64]*Node, 0)
 var rwLocker sync.RWMutex
 
 func Chat(writer http.ResponseWriter, request *http.Request) {
+	//1.  获取参数 并 检验 token 等合法性
 	query := request.URL.Query()
 	id := query.Get("userId")
 	userId, _ := strconv.ParseInt(id, 10, 64)
@@ -61,17 +68,24 @@ func Chat(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println(err)
 		return
 	}
+	//2.获取conn
+	currentTime := uint64(time.Now().Unix())
 	node := &Node{
-		Conn:      conn,
-		DataQueue: make(chan []byte, 50),
-		GroupSets: set.New(set.ThreadSafe),
+		Conn:          conn,
+		Addr:          conn.RemoteAddr().String(),
+		DataQueue:     make(chan []byte, 50),
+		GroupSets:     set.New(set.ThreadSafe),
+		FirstTime:     currentTime,
+		HeartbeatTime: currentTime,
 	}
 	rwLocker.Lock()
 	clientMap[userId] = node
 	rwLocker.Unlock()
-
+	//发送消息协程
 	go sendProc(node)
+	//接收消息协程
 	go recvProc(node)
+	SetUserOnlineInfo("online_"+id, []byte(node.Addr), time.Duration(viper.GetInt("timeout.RedisOnlineTime"))*time.Hour)
 	sendMsg(userId, []byte("欢迎进入聊天室。。。。。。"))
 }
 
@@ -96,10 +110,27 @@ func recvProc(node *Node) {
 			fmt.Println(err)
 			return
 		}
-		dispatch(data)
-		//broadMsg(data)
-		fmt.Println("[ws] recvMsg <<<<<< msg: ", string(data))
+		msg := Message{}
+		err = json.Unmarshal(data, &msg)
+		if err != nil {
+			fmt.Println(err)
+		}
+		//心跳检测 msg.Media == -1 || msg.Type == 3
+		if msg.Type == 3 {
+			currentTime := uint64(time.Now().Unix())
+			node.Heartbeat(currentTime)
+		} else {
+			dispatch(data)
+			//broadMsg(data)
+			fmt.Println("[ws] recvMsg <<<<<< msg: ", string(data))
+		}
 	}
+}
+
+// 更新用户心跳
+func (node *Node) Heartbeat(currentTime uint64) {
+	node.HeartbeatTime = currentTime
+	return
 }
 
 var upSendChan chan []byte = make(chan []byte, 1024)
@@ -140,7 +171,7 @@ func udpSendProc() {
 func updRecvProc() {
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
 		IP:   net.IPv4zero,
-		Port: 3000,
+		Port: viper.GetInt("port.udp"),
 	})
 	if err != nil {
 		fmt.Println(err)
