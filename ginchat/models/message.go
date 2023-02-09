@@ -1,8 +1,11 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"ginchat/utils"
+	"github.com/go-redis/redis/v8"
 	"net"
 	"net/http"
 	"strconv"
@@ -214,7 +217,6 @@ func dispatch(data []byte) {
 }
 
 func sendMsg(userId int64, msg []byte) {
-	fmt.Println("sendMsg >>>>> userId: ", userId, " msg: ", string(msg))
 	// for k, v := range clientMap {
 	// 	fmt.Println(k, "<<<<>>>>", v)
 	// }
@@ -222,7 +224,36 @@ func sendMsg(userId int64, msg []byte) {
 	node, ok := clientMap[userId]
 	//fmt.Println("sendMsg OK:", ok)
 	rwLocker.RUnlock()
-	if ok {
-		node.DataQueue <- msg
+	jsonMsg := Message{}
+	json.Unmarshal(msg, &jsonMsg)
+	ctx := context.Background()
+	targetIdStr := strconv.Itoa(int(userId))
+	userIdStr := strconv.Itoa(int(jsonMsg.FromId))
+	jsonMsg.CreateTime = uint64(time.Now().Unix())
+	r, err := utils.RedisClient.Get(ctx, "online_"+userIdStr).Result()
+	if err != nil {
+		fmt.Println(err)
 	}
+	if r != "" {
+		if ok {
+			fmt.Println("sendMsg >>>>> userId: ", userId, " msg: ", string(msg))
+			node.DataQueue <- msg
+		}
+	}
+	var key string
+	if userId > jsonMsg.FromId {
+		key = "msg_" + userIdStr + "_" + targetIdStr
+	} else {
+		key = "msg_" + targetIdStr + "_" + userIdStr
+	}
+	res, err := utils.RedisClient.ZRevRange(ctx, key, 0, -1).Result()
+	if err != nil {
+		fmt.Println(err)
+	}
+	score := float64(cap(res)) + 1
+	result, err := utils.RedisClient.ZAdd(ctx, key, &redis.Z{score, msg}).Result()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(result)
 }
