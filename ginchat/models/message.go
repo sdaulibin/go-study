@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"ginchat/utils"
-	"github.com/go-redis/redis/v8"
 	"net"
 	"net/http"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/gorilla/websocket"
 	"github.com/spf13/viper"
@@ -256,4 +257,27 @@ func sendMsg(userId int64, msg []byte) {
 		fmt.Println(err)
 	}
 	fmt.Println(result)
+}
+
+func RedisMsg(userIdA int64, userIdB int64, start int64, end int64, isRev bool) []string {
+	ctx := context.Background()
+	userIdStr := strconv.Itoa(int(userIdA))
+	targetIdStr := strconv.Itoa(int(userIdB))
+	var key string
+	if userIdA > userIdB {
+		key = "msg_" + targetIdStr + "_" + userIdStr
+	} else {
+		key = "msg_" + userIdStr + "_" + targetIdStr
+	}
+	var rels []string
+	var err error
+	if isRev {
+		rels, err = utils.RedisClient.ZRange(ctx, key, start, end).Result()
+	} else {
+		rels, err = utils.RedisClient.ZRevRange(ctx, key, start, end).Result()
+	}
+	if err != nil {
+		fmt.Println(err) //没有找到
+	}
+	return rels
 }
