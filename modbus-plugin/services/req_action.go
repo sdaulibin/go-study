@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"log"
 	server_map "modbus-plugin/map"
+	"modbus-plugin/modbus"
 )
 
 func Process(conn_key string) {
@@ -23,4 +24,12 @@ func Process(conn_key string) {
 		log.Println("网关设备(id:" + conn_key + ")已断开连接!")
 	}
 	server_map.TcpConnSyncMap[conn_key].Unlock()
+}
+
+func RecvToTcpFrame(recv []byte) modbus.TcpFrame {
+	tcpFrame := modbus.TcpFrame{}
+	tcpFrame.Start = uint16(recv[0])
+	tcpFrame.Serial = recv[4:8]
+	tcpFrame.FuncId = uint16(recv[1])
+	return tcpFrame
 }
