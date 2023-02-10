@@ -28,6 +28,6 @@ func Process(conn_key string) {
 
 func RecvToTcpFrame(recv []byte) modbus.TcpFrame {
 	tcpFrame := modbus.TcpFrame{}
-	tcpFrame.InitFrame()
+	tcpFrame.InitSendFrame()
 	return tcpFrame
 }
