@@ -1,7 +1,8 @@
 package modbus
 
 import (
-	"log"
+	"bytes"
+	"encoding/hex"
 	"modbus-plugin/constants"
 	"reflect"
 )
@@ -19,14 +20,17 @@ func (tcpFrame *TcpFrame) InitFrame() TcpFrame {
 }
 
 func (tcpFrame *TcpFrame) GenTcpFrame(input TcpFrame) []byte {
-	result := make([]byte, 0)
 	t := reflect.TypeOf(input)
 	v := reflect.ValueOf(input)
+	temps := make([][]byte, t.NumField())
 	for i := 0; i < t.NumField(); i++ {
-		log.Println(t.Field(i).Name)
-		log.Println(v.FieldByName(t.Field(i).Name))
-		log.Println(v.Field(i))
-		//bytes.Join(data, result)
+		if v.Field(i).Type().String() == "[]uint8" {
+			temp, _ := hex.DecodeString(hex.EncodeToString(v.Field(i).Bytes()))
+			if len(temp) == 0 {
+				continue
+			}
+			temps[i] = temp
+		}
 	}
-	return result
+	return bytes.Join(temps, []byte(""))
 }

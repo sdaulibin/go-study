@@ -28,8 +28,6 @@ func Process(conn_key string) {
 
 func RecvToTcpFrame(recv []byte) modbus.TcpFrame {
 	tcpFrame := modbus.TcpFrame{}
-	tcpFrame.Start = uint16(recv[0])
-	tcpFrame.Serial = recv[4:8]
-	tcpFrame.FuncId = uint16(recv[1])
+	tcpFrame.InitFrame()
 	return tcpFrame
 }
