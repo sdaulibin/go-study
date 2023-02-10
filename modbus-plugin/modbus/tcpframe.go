@@ -20,7 +20,7 @@ type TcpFrame struct {
 	MeterAddr []byte //6 Bytes BCD 表地址
 	Data      []byte //数据区 用户区数据
 	Crc       []byte //2 Bytes HEX CRC 检验码
-	End       byte   //0X45 HEX 结束字符
+	End       []byte //0X45 HEX 结束字符
 }
 
 type SendTcpFrame struct {

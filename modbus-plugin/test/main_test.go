@@ -1,10 +1,9 @@
 package test
 
 import (
-	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"modbus-plugin/services"
+	"modbus-plugin/modbus"
 	"modbus-plugin/utils"
 	"net"
 	"strconv"
@@ -41,15 +40,8 @@ func Test_Crc(test *testing.T) {
 }
 
 func Test_Frame(test *testing.T) {
-	frame := services.RecvToTcpFrame([]byte("A123456789123456789"))
-	fmt.Printf("frame.Start: %v,%s\n", frame.Start, strconv.FormatInt(int64(frame.Start), 16))
-	fmt.Printf("frame.FuncId: %v\n", frame.FuncId)
-
-	data := make([]byte, 0)
-	data = binary.BigEndian.AppendUint16(data, frame.FuncId)
-	data = binary.BigEndian.AppendUint16(data, frame.FuncId)
-	test.Log(hex.EncodeToString(data))
-
+	tcpTrame := modbus.TcpFrame{}
+	tcpTrame.GenTcpFrame(tcpTrame.InitFrame())
 	i := 1
 	fmt.Println(i<<7 + i)
 }
