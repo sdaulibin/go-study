@@ -1,12 +1,34 @@
 package modbus
 
+/*
+*
+字节 code 数据格式 描述
+0 4 Bytes HEX TCP/IP 识别包头
+4 11 Bytes ASCII 集中器地址
+15 10 Bytes HEX 发送数据包头
+25 3 Bytes HEX 控制码
+28 6 Bytes BCD 采集器地址
+34 6 Bytes BCD 表地址
+40 2 Bytes HEX CRC 检验码
+42 0X45 HEX 结束字符
+*/
 type TcpFrame struct {
-	Start  uint16 //帧起始符 固定为 0x64
-	Length []byte //帧总长度 例如整个数据包有120个字节 ， 此处应填 0x78 0x00
-	Fixed  uint16 //保留字段  固定为1
-	Serial []byte //帧序号 同一条命令下行时携带的序号，对此数据回复时应在同样的位置携带此标志，表示对之前某一条命令的回复
-	FuncId uint16 //标识符 标识功能ID，在具体功能里定义
-	Data   []byte //数据区 用户区数据
-	Crc    []byte //CRC16校验 2个字节帧格式校验
-	End    uint16 //帧结束符 0x20
+	Start     []byte //0 4 Bytes HEX TCP/IP 识别包头, 0X7B 01 00 16,4 Bytes
+	AsciiAddr []byte //4 11 Bytes ASCII 集中器地址
+	FuncId    []byte //3 Bytes HEX 控制码
+	CollAddr  []byte //6 Bytes BCD 采集器地址
+	MeterAddr []byte //6 Bytes BCD 表地址
+	Data      []byte //数据区 用户区数据
+	Crc       []byte //2 Bytes HEX CRC 检验码
+	End       byte   //0X45 HEX 结束字符
+}
+
+type SendTcpFrame struct {
+	TcpFrame
+	SendHead uint16 //10 Bytes HEX 发送数据包头
+}
+
+type RecvTcpFrame struct {
+	TcpFrame
+	RecvHead uint16 //10 Bytes HEX 返回数据包头
 }
