@@ -10,3 +10,7 @@ func ModbusCrc16(data string) string {
 	crc16Hex, _ := hex.DecodeString(data)
 	return crc16.ToHexString(crc16.ChecksumMODBUS(crc16Hex))
 }
+func CcittCrc(data string) string {
+	crc16Hex, _ := hex.DecodeString(data)
+	return crc16.ToHexString(crc16.ChecksumCCITT(crc16Hex))
+}

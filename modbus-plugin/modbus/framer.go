@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"encoding/hex"
 	"modbus-plugin/constants"
+	"modbus-plugin/utils"
 	"reflect"
 )
 
 type Framer interface {
-	InitFrame() TcpFrame
+	InitSendFrame() TcpFrame
 	GenTcpFrame([]byte) []byte
 }
 
-func (tcpFrame *TcpFrame) InitFrame() TcpFrame {
+func (tcpFrame *TcpFrame) InitSendFrame() TcpFrame {
 	sendFrame := TcpFrame{}
 	sendFrame.Start = constants.FRAME_START
-	sendFrame.End = constants.FRRAME_END
+	sendFrame.SendHead = constants.SEND_HEAD
 	return sendFrame
 }
 
@@ -32,5 +33,8 @@ func (tcpFrame *TcpFrame) GenTcpFrame(input TcpFrame) []byte {
 			temps[i] = temp
 		}
 	}
+	crc, _ := hex.DecodeString(utils.CcittCrc(hex.EncodeToString(bytes.Join(temps, []byte("")))))
+	temps[len(temps)-2] = crc
+	temps[len(temps)-1] = constants.FRRAME_END
 	return bytes.Join(temps, []byte(""))
 }

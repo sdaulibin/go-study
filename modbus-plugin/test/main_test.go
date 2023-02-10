@@ -41,7 +41,7 @@ func Test_Crc(test *testing.T) {
 
 func Test_Frame(test *testing.T) {
 	tcpTrame := modbus.TcpFrame{}
-	b := tcpTrame.GenTcpFrame(tcpTrame.InitFrame())
+	b := tcpTrame.GenTcpFrame(tcpTrame.InitSendFrame())
 	fmt.Println(hex.EncodeToString(b))
 	i := 1
 	fmt.Println(i<<7 + i)
