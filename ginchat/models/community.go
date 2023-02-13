@@ -50,14 +50,14 @@ func GetCommunities(ownerId uint) ([]*Community, string) {
 	return data, "查询完成"
 }
 
-func JoinGroup(userId uint, commId string) (int, string) {
+func JoinGroup(userId uint, communityId string) (int, string) {
 	contact := Contact{}
 	contact.OwnerId = userId
 	// contact.TargetId = commId
 	contact.Type = 2
 	community := Community{}
 
-	utils.DB.Where("id = ? or name = ?", commId, commId).Find(&community)
+	utils.DB.Where("id = ? or name = ?", communityId, communityId).Find(&community)
 	if community.Name == "" {
 		return -1, "没找到群"
 	}

@@ -159,7 +159,6 @@ func udpSendProc() {
 	})
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
 	defer conn.Close()
 	for {
