@@ -45,9 +45,9 @@ func Test_Frame(test *testing.T) {
 	tcpTrame = tcpTrame.InitSendFrame()
 	tcpTrame.FuncId = constants.FUNCID_COLLECT
 	tcpTrame.AsciiAddr = []byte{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31}
-	collAddr, _ := hex.DecodeString(hex.EncodeToString(utils.LittleOrder(int16(4), 6)))
+	collAddr := tcpTrame.GenLittleAddr(4)
 	tcpTrame.CollAddr = collAddr
-	meterAddr, _ := hex.DecodeString(hex.EncodeToString(utils.LittleOrder(int16(25), 6)))
+	meterAddr := tcpTrame.GenLittleAddr(25)
 	tcpTrame.MeterAddr = meterAddr
 	b := tcpTrame.GenTcpFrame(tcpTrame)
 	fmt.Println(hex.EncodeToString(b))
@@ -56,6 +56,7 @@ func Test_Frame(test *testing.T) {
 }
 
 func Test_Order(test *testing.T) {
-	fmt.Printf(">>>>>>: %v\n", utils.LittleOrder(int16(25), 6))
-	fmt.Printf(">>>>>>: %v\n", hex.EncodeToString(utils.LittleOrder(int16(25), 6)))
+	tf := modbus.TcpFrame{}
+	fmt.Printf(">>>>>>: %v\n", hex.EncodeToString(tf.GenLittleAddr(4)))
+	fmt.Printf(">>>>>>: %v\n", hex.EncodeToString(tf.GenLittleAddr(25)))
 }

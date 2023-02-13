@@ -11,6 +11,7 @@ import (
 type Framer interface {
 	InitSendFrame() TcpFrame
 	GenTcpFrame([]byte) []byte
+	GenLittleAddr(int16) []byte
 }
 
 func (tcpFrame *TcpFrame) InitSendFrame() TcpFrame {
@@ -37,4 +38,9 @@ func (tcpFrame *TcpFrame) GenTcpFrame(input TcpFrame) []byte {
 	temps[len(temps)-2] = crc
 	temps[len(temps)-1] = constants.FRRAME_END
 	return bytes.Join(temps, []byte(""))
+}
+
+func (tcpFrame *TcpFrame) GenLittleAddr(source int16) []byte {
+	addr, _ := hex.DecodeString(hex.EncodeToString(utils.LittleOrder(source, 6)))
+	return addr
 }
