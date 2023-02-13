@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"ginchat/utils"
+	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -210,8 +211,8 @@ func dispatch(data []byte) {
 	case 1: //私信
 		fmt.Println("dispatch data: ", string(data))
 		sendMsg(msg.TargetId, data)
-		//case 2: //群发
-		//	sendGroupMsg()
+	case 2: //群发
+		sendGroupMsg(msg.TargetId, data)
 		//case 3: //广播
 		//	sendAllMsg()
 	}
@@ -306,4 +307,14 @@ func CleanConnections(param interface{}) (result bool) {
 		}
 	}
 	return result
+}
+
+func sendGroupMsg(targetId int64, msg []byte) {
+	log.Println("开始发群消息")
+	userIds := SearchUserByGroupId(uint(targetId))
+	for i := 0; i < len(userIds); i++ {
+		if targetId != int64(userIds[i]) {
+			sendMsg(int64(userIds[i]), msg)
+		}
+	}
 }

@@ -77,3 +77,13 @@ func AddFriend(userId uint, targetName string) (int, string) {
 	}
 	return -1, fmt.Sprintf("添加好友失败！>%s<", targetName)
 }
+
+func SearchUserByGroupId(communityId uint) []uint {
+	contacts := make([]Contact, 0)
+	objId := make([]uint, 0)
+	utils.DB.Where("target_id = ? and type=2", communityId).Find(&contacts)
+	for _, v := range contacts {
+		objId = append(objId, v.ID)
+	}
+	return objId
+}
