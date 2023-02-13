@@ -281,3 +281,29 @@ func RedisMsg(userIdA int64, userIdB int64, start int64, end int64, isRev bool) 
 	}
 	return rels
 }
+
+func (node *Node) IsHeartBeatTimeOut(currentTime uint64) (timeout bool) {
+	if node.HeartbeatTime+viper.GetUint64("timeout.HeartbeatMaxTime") <= currentTime {
+		fmt.Println("心跳超时。。。。自动下线", node)
+		return true
+	}
+	return
+}
+
+func CleanConnections(param interface{}) (result bool) {
+	result = true
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("cleanConnection err", r)
+		}
+	}()
+	currentTime := uint(time.Now().Unix())
+	for i := range clientMap {
+		node := clientMap[i]
+		if node.IsHeartBeatTimeOut(uint64(currentTime)) {
+			fmt.Println("心跳超时..... 关闭连接：", node)
+			node.Conn.Close()
+		}
+	}
+	return result
+}
