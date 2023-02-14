@@ -12,8 +12,8 @@ var FRRAME_END []byte = []byte{0x45}
 // 控制码:采集请求
 var FUNCID_COLLECT = []byte{0x4D, 0x4D, 0x4D}
 
-// 控制码:采集请求-应答1
+// 控制码:采集请求-应答正在采集
 var FUNCID_RESP_1 = []byte{0x4D, 0x4D, 0x4D}
 
-// 控制码:采集请求-应答2
+// 控制码:采集请求-应答-表采集
 var FUNCID_RESP_2 = []byte{0x44, 0x44, 0x44}

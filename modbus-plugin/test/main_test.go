@@ -46,6 +46,6 @@ func Test_Frame(test *testing.T) {
 	tcpFrame = tcpFrame.SetAddrFrame(tcpFrame, []byte{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31}, 4, 25)
 	b := tcpFrame.GenTcpFrame(tcpFrame)
 	fmt.Println(hex.EncodeToString(b))
-	i := 1
-	fmt.Println(i<<7 + i)
+	// i := 1
+	// fmt.Println(i<<7 + i)
 }
