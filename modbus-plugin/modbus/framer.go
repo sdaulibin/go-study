@@ -9,15 +9,27 @@ import (
 )
 
 type Framer interface {
-	InitSendFrame() TcpFrame
+	InitSendFrame([]byte) TcpFrame
+	SetAddrFrame(asciiAddr, collAddr, meterAddr []byte)
 	GenTcpFrame([]byte) []byte
 	GenLittleAddr(int16) []byte
 }
 
-func (tcpFrame *TcpFrame) InitSendFrame() TcpFrame {
+func (tcpFrame *TcpFrame) InitSendFrame(funcId []byte) TcpFrame {
 	sendFrame := TcpFrame{}
 	sendFrame.Start = constants.FRAME_START
 	sendFrame.SendHead = constants.SEND_HEAD
+	sendFrame.FuncId = funcId
+	return sendFrame
+}
+
+func (tcpFrame *TcpFrame) SetAddrFrame(sendFrame TcpFrame, addr []byte, coll, meter int16) TcpFrame {
+	sendFrame.FuncId = constants.FUNCID_COLLECT
+	sendFrame.AsciiAddr = addr
+	collAddr := genLittleAddr(coll)
+	sendFrame.CollAddr = collAddr
+	meterAddr := genLittleAddr(meter)
+	sendFrame.MeterAddr = meterAddr
 	return sendFrame
 }
 
@@ -40,7 +52,7 @@ func (tcpFrame *TcpFrame) GenTcpFrame(input TcpFrame) []byte {
 	return bytes.Join(temps, []byte(""))
 }
 
-func (tcpFrame *TcpFrame) GenLittleAddr(source int16) []byte {
+func genLittleAddr(source int16) []byte {
 	addr, _ := hex.DecodeString(hex.EncodeToString(utils.LittleOrder(source, 6)))
 	return addr
 }
