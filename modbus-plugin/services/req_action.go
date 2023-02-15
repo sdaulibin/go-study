@@ -16,7 +16,7 @@ func Process(conn_key string) {
 	log.Println("send message type 0x07 :", hex.EncodeToString(frame))
 	conn.Write(frame)
 	reader := bufio.NewReader(conn)
-	var recvByte [128]byte
+	var recvByte [512]byte
 	n, err := reader.Read(recvByte[:]) // 读取数据
 	hexStr := hex.EncodeToString(recvByte[:n])
 	log.Println("trans []byte to hex :", hexStr)
