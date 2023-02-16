@@ -2,14 +2,18 @@ package test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"modbus-plugin/constants"
+	"modbus-plugin/logs"
 	"modbus-plugin/modbus"
 	"modbus-plugin/utils"
 	"net"
 	"strconv"
 	"testing"
 )
+
+func init() {
+	logs.Init()
+}
 
 func Test_Main(test *testing.T) {
 	conn, err1 := net.Dial("tcp", "127.0.0.1:8004")
@@ -45,7 +49,7 @@ func Test_Frame(test *testing.T) {
 	tcpFrame = tcpFrame.InitSendFrame(constants.FUNCID_COLLECT)
 	tcpFrame = tcpFrame.SetAddrFrame(tcpFrame, []byte{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31}, 4, 25)
 	b := tcpFrame.GenTcpFrame(tcpFrame)
-	fmt.Println(hex.EncodeToString(b))
+	logs.Logger.Info(hex.EncodeToString(b))
 	// i := 1
 	// fmt.Println(i<<7 + i)
 }
