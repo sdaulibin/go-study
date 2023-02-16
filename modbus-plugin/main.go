@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"log"
 	"modbus-plugin/initialize"
+	"modbus-plugin/logs"
 	server_map "modbus-plugin/map"
 	"modbus-plugin/services"
 	"modbus-plugin/utils"
@@ -18,6 +19,7 @@ import (
 
 func main() {
 	initialize.InitConfig()
+	logs.Init()
 
 	listen, err := net.Listen("tcp", viper.GetString("server.address"))
 	if err != nil {
